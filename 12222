@@ -1,0 +1,105 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include<stdio.h>
+#include<stdlib.h>
+#include<time.h>
+#include <string.h>
+typedef struct {
+    char name[50];        
+    char deadline[20];   
+    int priority;         
+    int isCompleted;
+} Task;
+void loadTasks();
+void addTask();
+void viewTasks();
+void markCompleted();
+void saveTasks();
+#define MAX_TASKS 100
+Task tasks[MAX_TASKS];
+int taskCount = 0;
+int main() {
+    int choice;
+    loadTasks();
+    while (1) {
+        printf("\n= 任务管理 =\n1.添加 2.查看 3.标完成 4.保存退出\n选：");
+        scanf("%d", &choice);
+        switch (choice) {
+        case 1: addTask(); break;
+        case 2: viewTasks(); break;
+        case 3: markCompleted(); break;
+        case 4: saveTasks(); printf("已保存，再见！\n"); return 0;
+        default: printf("输入错！\n");
+        }
+    }
+}
+void addTask() {
+    if (taskCount >= 100) {
+        printf("任务数量已达上限，无法添加！\n");
+        return;
+    }
+        Task newTask;
+    printf("请输入任务名称:");
+    getchar();
+    fgets(newTask.name, 50, stdin);
+    newTask.name[strcspn(newTask.name, "\n")] = 0;
+    printf("请输入截止日期: ");
+    scanf("%s", newTask.deadline);
+    printf("请输入优先级(1-3，1最高):");
+    scanf("%d", &newTask.priority);
+    newTask.isCompleted = 0;
+    tasks[taskCount++] = newTask;
+    printf("任务添加成功！\n");
+}
+void viewTasks() {
+    if (taskCount == 0) {
+        printf("暂无任务！\n");
+        return;
+    }
+
+    printf("\n= 任务列表 =\n");
+    for (int i = 0; i < taskCount; i++) {
+        printf("任务 %d\n", i + 1);
+        printf("名称：%s\n", tasks[i].name);
+        printf("截止日期：%s\n", tasks[i].deadline);
+        printf("优先级：%d\n", tasks[i].priority);
+        printf("状态：%s\n", tasks[i].isCompleted ? "已完成" : "未完成");
+    }
+}
+void markCompleted() {
+    viewTasks();
+    if (!taskCount) 
+        return;
+    int idx;
+    printf("输任务序号:");
+    scanf("%d", &idx);
+
+    if (idx < 1 || idx > taskCount) {
+        printf("序号错！\n");
+        return;
+    }
+
+    tasks[idx - 1].isCompleted = 1;
+    printf("已完成！\n");
+}
+void saveTasks() {
+    FILE* file = fopen("tasks.dat", "wb");
+    if (!file) {
+        printf("保存失败！\n");
+        return;
+    }
+    fwrite(&taskCount, sizeof(int), 1, file);
+    fwrite(tasks, sizeof(Task), taskCount, file);
+    fclose(file);
+    printf("任务已保存\n");
+}
+void loadTasks() {
+    FILE* file = fopen("tasks.dat", "rb");
+    if (!file) {
+        printf("无历史任务，将新建文件\n");
+        return;
+    }
+    fread(&taskCount, sizeof(int), 1, file);
+    fread(tasks, sizeof(Task), taskCount, file);
+    fclose(file);
+    printf("已加载%d个任务\n", taskCount);
+}
